@@ -1,5 +1,6 @@
 # Draw-DFA
 An application for generating and performing operations on deterministic and nondeterministic finite automata.
+# instructions to run
 To run this tool:
 1. install dependencies via `npm i`
 2. start the app via `npm start`

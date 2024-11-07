@@ -183,11 +183,15 @@ const DfaNfaVisualizer = () => {
             setStateCounter(0);
             setAcceptingStates(new Set());
     
-            const stateMap = {};
             const newAcceptingStates = new Set();
+            const loadedStates = [];
     
+            // First pass: Create all states with their original IDs
             data.states.forEach(state => {
-                const circle = new shapes.standard.Circle();
+                const circle = new shapes.standard.Circle({
+                    id: state.id  // Set the ID explicitly
+                });
+                
                 circle.position(state.x, state.y);
                 circle.resize(60, 60);
                 circle.attr({
@@ -199,90 +203,105 @@ const DfaNfaVisualizer = () => {
                 });
                 circle.addTo(graph);
                 
-                stateMap[state.id] = circle.id;
                 if (state.isAccepting) {
-                    newAcceptingStates.add(circle.id);
+                    newAcceptingStates.add(state.id);
                 }
                 
-                setStates(prevStates => [
-                    ...prevStates,
-                    { id: circle.id, label: state.label, node: circle }
-                ]);
-                setStateCounter(prevCounter => prevCounter + 1);
+                loadedStates.push({ 
+                    id: state.id, 
+                    label: state.label, 
+                    node: circle 
+                });
             });
-    
+
+            setStates(loadedStates);
+            setStateCounter(Math.max(...loadedStates.map(s => 
+                parseInt(s.label.replace('q', ''), 10))) + 1);
             setAcceptingStates(newAcceptingStates);
     
+            // Second pass: Create transitions using original state IDs
             data.transitions.forEach(transition => {
-                const sourceStateId = stateMap[transition.sourceId];
-                const targetStateId = stateMap[transition.targetId];
+                const existingLink = graph.getLinks().find(link => {
+                    const sourceId = link.getSourceElement().id;
+                    const targetId = link.getTargetElement().id;
+                    return sourceId === transition.sourceId && 
+                           targetId === transition.targetId;
+                });
     
-                if (sourceStateId && targetStateId) {
-                    const existingLink = graph.getLinks().find(link => {
-                        const sourceId = link.getSourceElement().id;
-                        const targetId = link.getTargetElement().id;
-                        return sourceId === sourceStateId && targetId === targetStateId;
-                    });
+                if (existingLink) {
+                    const existingLabel = existingLink.labels()[0].attrs.text.text;
+                    existingLink.labels([{
+                        attrs: { 
+                            text: { 
+                                text: `${existingLabel}, ${transition.label}`, 
+                                fontSize: 14, 
+                                fontWeight: 'bold' 
+                            } 
+                        },
+                        position: 0.5,
+                    }]);
+                } else {
+                    const link = new shapes.standard.Link();
+                    link.source({ id: transition.sourceId });
+                    link.target({ id: transition.targetId });
     
-                    if (existingLink) {
-                        const existingLabel = existingLink.labels()[0].attrs.text.text;
-                        existingLink.labels([{
-                            attrs: { text: { text: `${existingLabel}, ${transition.label}`, fontSize: 14, fontWeight: 'bold' } },
-                            position: 0.5,
-                        }]);
-                    } else {
-                        const link = new shapes.standard.Link();
-                        link.source({ id: sourceStateId });
-                        link.target({ id: targetStateId });
-    
-                        if (sourceStateId === targetStateId) {
-                            link.router({
-                                name: 'manhattan',
-                                args: {
-                                    padding: 20,
-                                    startDirections: ['top'],
-                                    endDirections: ['bottom'],
-                                },
-                            });
-                            link.connector('rounded');
-                        } else {
-                            link.router({
-                                name: 'manhattan',
-                                args: {
-                                    padding: 20,
-                                    startDirections: ['top', 'left', 'bottom', 'right'],
-                                    endDirections: ['top', 'left', 'bottom', 'right'],
-                                },
-                            });
-                        }
-    
-                        link.attr({
-                            line: {
-                                stroke: 'black',
-                                strokeWidth: 2,
-                                targetMarker: { type: 'path', d: 'M 10 -5 0 0 10 5 Z', fill: 'black' },
+                    if (transition.sourceId === transition.targetId) {
+                        link.router({
+                            name: 'manhattan',
+                            args: {
+                                padding: 20,
+                                startDirections: ['top'],
+                                endDirections: ['bottom'],
                             },
                         });
-    
-                        link.labels([{
-                            attrs: { text: { text: transition.label, fontSize: 14, fontWeight: 'bold' } },
-                            position: 0.5,
-                        }]);
-    
-                        link.addTo(graph);
+                        link.connector('rounded');
+                    } else {
+                        link.router({
+                            name: 'manhattan',
+                            args: {
+                                padding: 20,
+                                startDirections: ['top', 'left', 'bottom', 'right'],
+                                endDirections: ['top', 'left', 'bottom', 'right'],
+                            },
+                        });
                     }
     
-                    setTransitions(prevTransitions => [
-                        ...prevTransitions,
-                        { 
-                            sourceId: transition.sourceId, 
-                            targetId: transition.targetId, 
-                            label: transition.label, 
-                            source: transition.source, 
-                            target: transition.target 
-                        }
-                    ]);
+                    link.attr({
+                        line: {
+                            stroke: 'black',
+                            strokeWidth: 2,
+                            targetMarker: { 
+                                type: 'path', 
+                                d: 'M 10 -5 0 0 10 5 Z', 
+                                fill: 'black' 
+                            },
+                        },
+                    });
+    
+                    link.labels([{
+                        attrs: { 
+                            text: { 
+                                text: transition.label, 
+                                fontSize: 14, 
+                                fontWeight: 'bold' 
+                            } 
+                        },
+                        position: 0.5,
+                    }]);
+    
+                    link.addTo(graph);
                 }
+    
+                setTransitions(prevTransitions => [
+                    ...prevTransitions,
+                    { 
+                        sourceId: transition.sourceId,
+                        targetId: transition.targetId,
+                        label: transition.label,
+                        source: transition.source,
+                        target: transition.target
+                    }
+                ]);
             });
         };
         reader.readAsText(file);

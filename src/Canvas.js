@@ -187,7 +187,9 @@ const DfaNfaVisualizer = () => {
             const newAcceptingStates = new Set();
     
             data.states.forEach(state => {
-                const circle = new shapes.standard.Circle();
+                const circle = new shapes.standard.Circle({
+                    id: state.id  // Set the ID explicitly
+                }); 
                 circle.position(state.x, state.y);
                 circle.resize(60, 60);
                 circle.attr({

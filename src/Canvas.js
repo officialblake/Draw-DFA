@@ -183,15 +183,11 @@ const DfaNfaVisualizer = () => {
             setStateCounter(0);
             setAcceptingStates(new Set());
     
+            const stateMap = {};
             const newAcceptingStates = new Set();
-            const loadedStates = [];
     
-            // First pass: Create all states with their original IDs
             data.states.forEach(state => {
-                const circle = new shapes.standard.Circle({
-                    id: state.id  // Set the ID explicitly
-                });
-                
+                const circle = new shapes.standard.Circle();
                 circle.position(state.x, state.y);
                 circle.resize(60, 60);
                 circle.attr({
@@ -203,118 +199,106 @@ const DfaNfaVisualizer = () => {
                 });
                 circle.addTo(graph);
                 
+                stateMap[state.id] = circle.id;
                 if (state.isAccepting) {
-                    newAcceptingStates.add(state.id);
+                    newAcceptingStates.add(circle.id);
                 }
                 
-                loadedStates.push({ 
-                    id: state.id, 
-                    label: state.label, 
-                    node: circle 
-                });
+                setStates(prevStates => [
+                    ...prevStates,
+                    { id: circle.id, label: state.label, node: circle }
+                ]);
+                setStateCounter(prevCounter => prevCounter + 1);
             });
-
-            setStates(loadedStates);
-            setStateCounter(Math.max(...loadedStates.map(s => 
-                parseInt(s.label.replace('q', ''), 10))) + 1);
+    
             setAcceptingStates(newAcceptingStates);
     
-            // Second pass: Create transitions using original state IDs
             data.transitions.forEach(transition => {
-                const existingLink = graph.getLinks().find(link => {
-                    const sourceId = link.getSourceElement().id;
-                    const targetId = link.getTargetElement().id;
-                    return sourceId === transition.sourceId && 
-                           targetId === transition.targetId;
-                });
+                const sourceStateId = stateMap[transition.sourceId];
+                const targetStateId = stateMap[transition.targetId];
     
-                if (existingLink) {
-                    const existingLabel = existingLink.labels()[0].attrs.text.text;
-                    existingLink.labels([{
-                        attrs: { 
-                            text: { 
-                                text: `${existingLabel}, ${transition.label}`, 
-                                fontSize: 14, 
-                                fontWeight: 'bold' 
-                            } 
-                        },
-                        position: 0.5,
-                    }]);
-                } else {
-                    const link = new shapes.standard.Link();
-                    link.source({ id: transition.sourceId });
-                    link.target({ id: transition.targetId });
-    
-                    if (transition.sourceId === transition.targetId) {
-                        link.router({
-                            name: 'manhattan',
-                            args: {
-                                padding: 20,
-                                startDirections: ['top'],
-                                endDirections: ['bottom'],
-                            },
-                        });
-                        link.connector('rounded');
-                    } else {
-                        link.router({
-                            name: 'manhattan',
-                            args: {
-                                padding: 20,
-                                startDirections: ['top', 'left', 'bottom', 'right'],
-                                endDirections: ['top', 'left', 'bottom', 'right'],
-                            },
-                        });
-                    }
-    
-                    link.attr({
-                        line: {
-                            stroke: 'black',
-                            strokeWidth: 2,
-                            targetMarker: { 
-                                type: 'path', 
-                                d: 'M 10 -5 0 0 10 5 Z', 
-                                fill: 'black' 
-                            },
-                        },
+                if (sourceStateId && targetStateId) {
+                    const existingLink = graph.getLinks().find(link => {
+                        const sourceId = link.getSourceElement().id;
+                        const targetId = link.getTargetElement().id;
+                        return sourceId === sourceStateId && targetId === targetStateId;
                     });
     
-                    link.labels([{
-                        attrs: { 
-                            text: { 
-                                text: transition.label, 
-                                fontSize: 14, 
-                                fontWeight: 'bold' 
-                            } 
-                        },
-                        position: 0.5,
-                    }]);
+                    if (existingLink) {
+                        const existingLabel = existingLink.labels()[0].attrs.text.text;
+                        existingLink.labels([{
+                            attrs: { text: { text: `${existingLabel}, ${transition.label}`, fontSize: 14, fontWeight: 'bold' } },
+                            position: 0.5,
+                        }]);
+                    } else {
+                        const link = new shapes.standard.Link();
+                        link.source({ id: sourceStateId });
+                        link.target({ id: targetStateId });
     
-                    link.addTo(graph);
-                }
+                        if (sourceStateId === targetStateId) {
+                            link.router({
+                                name: 'manhattan',
+                                args: {
+                                    padding: 20,
+                                    startDirections: ['top'],
+                                    endDirections: ['bottom'],
+                                },
+                            });
+                            link.connector('rounded');
+                        } else {
+                            link.router({
+                                name: 'manhattan',
+                                args: {
+                                    padding: 20,
+                                    startDirections: ['top', 'left', 'bottom', 'right'],
+                                    endDirections: ['top', 'left', 'bottom', 'right'],
+                                },
+                            });
+                        }
     
-                setTransitions(prevTransitions => [
-                    ...prevTransitions,
-                    { 
-                        sourceId: transition.sourceId,
-                        targetId: transition.targetId,
-                        label: transition.label,
-                        source: transition.source,
-                        target: transition.target
+                        link.attr({
+                            line: {
+                                stroke: 'black',
+                                strokeWidth: 2,
+                                targetMarker: { type: 'path', d: 'M 10 -5 0 0 10 5 Z', fill: 'black' },
+                            },
+                        });
+    
+                        link.labels([{
+                            attrs: { text: { text: transition.label, fontSize: 14, fontWeight: 'bold' } },
+                            position: 0.5,
+                        }]);
+    
+                        link.addTo(graph);
                     }
-                ]);
+    
+                    setTransitions(prevTransitions => [
+                        ...prevTransitions,
+                        { 
+                            sourceId: transition.sourceId, 
+                            targetId: transition.targetId, 
+                            label: transition.label, 
+                            source: transition.source, 
+                            target: transition.target 
+                        }
+                    ]);
+                }
             });
         };
         reader.readAsText(file);
     };
 
     return (
-        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: '1000px'}}>
             <div>
                 <div>
-                    <button onClick={addState}>Add State</button>
-                    <button onClick={startAddingTransition} disabled={isAddingTransition}>Add Transition</button>
-                    <button onClick={saveMachine}>Save Machine</button>
-                    <input type="file" onChange={loadMachine} accept=".json" style={{ marginLeft: '10px' }} />
+                    <button onClick={addState} className="button">Add State</button>
+                    <button onClick={startAddingTransition} disabled={isAddingTransition} className="button">Add Transition</button>
+                    <button onClick={saveMachine} className="button">Save Machine</button>
+                    <input type="file" onChange={loadMachine} accept=".json" style={{ display: 'none' }} id="fileInput"/>
+                    <button onClick={() => document.getElementById('fileInput').click()} className="button">
+                        Load Machine
+                    </button>
 
                     {isAddingTransition && (
                         <div style={{ marginTop: '10px' }}>
@@ -355,11 +339,11 @@ const DfaNfaVisualizer = () => {
             </div>
 
             <div style={{ marginLeft: '20px' }}>
-                <h3>States</h3>
+                <h3 style={{ color: 'black' }}>All States</h3>
                 <div style={{ marginBottom: '20px' }}>
                     {states.map(state => (
                         <div key={state.id} style={{ marginBottom: '5px' }}>
-                            <label>
+                            <label style={{ color: 'black' }}>
                                 <input
                                     type="checkbox"
                                     checked={acceptingStates.has(state.id)}
@@ -371,10 +355,10 @@ const DfaNfaVisualizer = () => {
                     ))}
                 </div>
 
-                <h3>Transitions</h3>
+                <h3 style={{ color: 'black' }}>All Transitions</h3>
                 <ul>
                     {transitions.map((t, index) => (
-                        <li key={index}>{`${t.source} --${t.label}--> ${t.target}`}</li>
+                        <li key={index} style={{ color: 'black' }}>{`${t.source} --${t.label}--> ${t.target}`}</li>
                     ))}
                 </ul>
             </div>

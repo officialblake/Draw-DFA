@@ -11,6 +11,7 @@ const DfaNfaVisualizer = () => {
     const [transitionSource, setTransitionSource] = useState(null);
     const [transitionTarget, setTransitionTarget] = useState(null);
     const [transitionLabel, setTransitionLabel] = useState('');
+    const [acceptingStates, setAcceptingStates] = useState(new Set());
 
     useEffect(() => {
         const newGraph = new dia.Graph({}, { cellNamespace: shapes });
@@ -26,6 +27,28 @@ const DfaNfaVisualizer = () => {
 
         setGraph(newGraph);
     }, []);
+
+    const toggleAcceptingState = (stateId) => {
+        setAcceptingStates(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(stateId)) {
+                newSet.delete(stateId);
+                // Update visual appearance to non-accepting state
+                const state = states.find(s => s.id === stateId);
+                if (state) {
+                    state.node.attr('body/fill', '#ccccff');
+                }
+            } else {
+                newSet.add(stateId);
+                // Update visual appearance to accepting state
+                const state = states.find(s => s.id === stateId);
+                if (state) {
+                    state.node.attr('body/fill', '#90EE90');
+                }
+            }
+            return newSet;
+        });
+    };
 
     const addState = () => {
         if (!graph) return;
@@ -60,7 +83,6 @@ const DfaNfaVisualizer = () => {
         const sourceState = states.find(state => state.id === transitionSource);
         const targetState = states.find(state => state.id === transitionTarget);
 
-        // Check for an existing link
         const existingLink = graph.getLinks().find(link => {
             const sourceId = link.getSourceElement().id;
             const targetId = link.getTargetElement().id;
@@ -68,7 +90,7 @@ const DfaNfaVisualizer = () => {
         });
 
         if (existingLink) {
-            const existingLabel = existingLink.labels().at(0).attrs.text.text;
+            const existingLabel = existingLink.labels()[0].attrs.text.text;
             existingLink.labels([{
                 attrs: { text: { text: `${existingLabel}, ${transitionLabel}`, fontSize: 14, fontWeight: 'bold' } },
                 position: 0.5,
@@ -113,22 +135,28 @@ const DfaNfaVisualizer = () => {
             link.addTo(graph);
         }
 
-        setTransitions([...transitions, { sourceId: sourceState.id, source: sourceState.label, targetId: targetState.id, target: targetState.label, label: transitionLabel }]);
+        setTransitions([...transitions, { 
+            sourceId: sourceState.id, 
+            source: sourceState.label, 
+            targetId: targetState.id, 
+            target: targetState.label, 
+            label: transitionLabel 
+        }]);
         setIsAddingTransition(false);
     };
-    let tempTransitions;
+
     const saveMachine = () => {
-        console.log("transitions@@@@ ", transitions);
         const machineData = {
             states: states.map(state => ({
                 label: state.label,
-                id: state.id,  // Save the state id
+                id: state.id,
                 x: state.node.position().x,
-                y: state.node.position().y
+                y: state.node.position().y,
+                isAccepting: acceptingStates.has(state.id)
             })),
             transitions: transitions.map(transition => ({
-                sourceId: transition.sourceId,  // Save the source state id
-                targetId: transition.targetId,  // Save the target state id
+                sourceId: transition.sourceId,
+                targetId: transition.targetId,
                 label: transition.label,
                 source: transition.source,
                 target: transition.target
@@ -139,12 +167,8 @@ const DfaNfaVisualizer = () => {
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = 'dfa_nfa_machine.json';
-        console.log([JSON.stringify(machineData, null, 2)])
         link.click();
     };
-    
-    
-    
 
     const loadMachine = (event) => {
         const file = event.target.files[0];
@@ -153,28 +177,33 @@ const DfaNfaVisualizer = () => {
         const reader = new FileReader();
         reader.onload = (e) => {
             const data = JSON.parse(e.target.result);
-            console.log(data);
-            // Clear the existing graph, states, and transitions
             graph.clear();
             setStates([]);
             setTransitions([]);
             setStateCounter(0);
+            setAcceptingStates(new Set());
     
-            // Create a map of state IDs to make linking easier
             const stateMap = {};
+            const newAcceptingStates = new Set();
     
-            // Recreate states first with positions
             data.states.forEach(state => {
                 const circle = new shapes.standard.Circle();
-                circle.position(state.x, state.y); 
+                circle.position(state.x, state.y);
                 circle.resize(60, 60);
                 circle.attr({
-                    body: { fill: '#ccccff', strokeWidth: 3 },
+                    body: { 
+                        fill: state.isAccepting ? '#90EE90' : '#ccccff', 
+                        strokeWidth: 3 
+                    },
                     label: { text: state.label, fill: 'black', fontWeight: 'bold' },
                 });
                 circle.addTo(graph);
-                // Save the state in the map for linking later
+                
                 stateMap[state.id] = circle.id;
+                if (state.isAccepting) {
+                    newAcceptingStates.add(circle.id);
+                }
+                
                 setStates(prevStates => [
                     ...prevStates,
                     { id: circle.id, label: state.label, node: circle }
@@ -182,7 +211,8 @@ const DfaNfaVisualizer = () => {
                 setStateCounter(prevCounter => prevCounter + 1);
             });
     
-            // Recreate transitions using sourceId and targetId
+            setAcceptingStates(newAcceptingStates);
+    
             data.transitions.forEach(transition => {
                 const sourceStateId = stateMap[transition.sourceId];
                 const targetStateId = stateMap[transition.targetId];
@@ -194,9 +224,8 @@ const DfaNfaVisualizer = () => {
                         return sourceId === sourceStateId && targetId === targetStateId;
                     });
     
-                    // Create a new link if none exists, otherwise update the existing one
                     if (existingLink) {
-                        const existingLabel = existingLink.labels().at(0).attrs.text.text;
+                        const existingLabel = existingLink.labels()[0].attrs.text.text;
                         existingLink.labels([{
                             attrs: { text: { text: `${existingLabel}, ${transition.label}`, fontSize: 14, fontWeight: 'bold' } },
                             position: 0.5,
@@ -206,7 +235,6 @@ const DfaNfaVisualizer = () => {
                         link.source({ id: sourceStateId });
                         link.target({ id: targetStateId });
     
-                        // Handle self-loops by adjusting the router
                         if (sourceStateId === targetStateId) {
                             link.router({
                                 name: 'manhattan',
@@ -216,6 +244,7 @@ const DfaNfaVisualizer = () => {
                                     endDirections: ['bottom'],
                                 },
                             });
+                            link.connector('rounded');
                         } else {
                             link.router({
                                 name: 'manhattan',
@@ -227,7 +256,6 @@ const DfaNfaVisualizer = () => {
                             });
                         }
     
-                        link.connector('rounded');
                         link.attr({
                             line: {
                                 stroke: 'black',
@@ -244,29 +272,33 @@ const DfaNfaVisualizer = () => {
                         link.addTo(graph);
                     }
     
-                    // Add transition to the list
                     setTransitions(prevTransitions => [
                         ...prevTransitions,
-                        { sourceId: transition.sourceId, targetId: transition.targetId, label: transition.label, source: transition.source, target: transition.target }
+                        { 
+                            sourceId: transition.sourceId, 
+                            targetId: transition.targetId, 
+                            label: transition.label, 
+                            source: transition.source, 
+                            target: transition.target 
+                        }
                     ]);
                 }
             });
         };
         reader.readAsText(file);
     };
-    
-    
-    
-    
 
     return (
-        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: '1000px'}}>
             <div>
                 <div>
-                    <button onClick={addState}>Add State</button>
-                    <button onClick={startAddingTransition} disabled={isAddingTransition}>Add Transition</button>
-                    <button onClick={saveMachine}>Save Machine</button>
-                    <input type="file" onChange={loadMachine} accept=".json" style={{ marginLeft: '10px' }} />
+                    <button onClick={addState} className="button">Add State</button>
+                    <button onClick={startAddingTransition} disabled={isAddingTransition} className="button">Add Transition</button>
+                    <button onClick={saveMachine} className="button">Save Machine</button>
+                    <input type="file" onChange={loadMachine} accept=".json" style={{ display: 'none' }} id="fileInput"/>
+                    <button onClick={() => document.getElementById('fileInput').click()} className="button">
+                        Load Machine
+                    </button>
 
                     {isAddingTransition && (
                         <div style={{ marginTop: '10px' }}>
@@ -306,11 +338,27 @@ const DfaNfaVisualizer = () => {
                 <div ref={paperRef} style={{ width: '600px', height: '600px', border: '1px solid #ccc', marginTop: '20px' }}></div>
             </div>
 
-            <div style={{ marginLeft: '20px', maxWidth: '200px' }}>
-                <h3>Transitions</h3>
+            <div style={{ marginLeft: '20px' }}>
+                <h3 style={{ color: 'black' }}>All States</h3>
+                <div style={{ marginBottom: '20px' }}>
+                    {states.map(state => (
+                        <div key={state.id} style={{ marginBottom: '5px' }}>
+                            <label style={{ color: 'black' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={acceptingStates.has(state.id)}
+                                    onChange={() => toggleAcceptingState(state.id)}
+                                />
+                                {state.label} (Toggle Accepting State)
+                            </label>
+                        </div>
+                    ))}
+                </div>
+
+                <h3 style={{ color: 'black' }}>All Transitions</h3>
                 <ul>
                     {transitions.map((t, index) => (
-                        <li key={index}>{`${t.source} --${t.label}--> ${t.target}`}</li>
+                        <li key={index} style={{ color: 'black' }}>{`${t.source} --${t.label}--> ${t.target}`}</li>
                     ))}
                 </ul>
             </div>

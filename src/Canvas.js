@@ -12,6 +12,8 @@ const DfaNfaVisualizer = () => {
     const [transitionTarget, setTransitionTarget] = useState(null);
     const [transitionLabel, setTransitionLabel] = useState('');
     const [acceptingStates, setAcceptingStates] = useState(new Set());
+    const [testString, setTestString] = useState('');
+    const [testResult, setTestResult] = useState(null);
 
     useEffect(() => {
         const newGraph = new dia.Graph({}, { cellNamespace: shapes });
@@ -306,11 +308,131 @@ const DfaNfaVisualizer = () => {
         };
         reader.readAsText(file);
     };
+    // Function to test a given string input
+    const testInput = () => {
+        // Ensure states and transitions are properly defined
+        if (!states || !transitions || !testString) {
+            setTestResult({
+                accepted: false,
+                message: 'Error: States, transitions, or input string not properly defined',
+                path: []
+            });
+            return;
+        }
+
+        // assume we start at q0
+        let currentState = 'q0';
+        //initialize array which holds path
+        if(!states.find(t => t.label === currentState)) {
+            setTestResult({
+                accepted: false,
+                message: 'Error: States, transitions, or input string not properly defined',
+                path: []
+            });
+            return;
+        }
+        const path = [currentState];
+
+        // Process each character in the input string
+        for (const symbol of testString) {
+            const transition = transitions.find(
+                t => t.source === currentState && t.label === symbol
+            );
+
+            // If no transition is found, reject the string
+            if (!transition) {
+                setTestResult({
+                    accepted: false,
+                    message: `Rejected: No transition found from state ${currentState} with symbol ${symbol}`,
+                    path
+                });
+                highlightPath(path);
+                return;
+            }
+            //set current state to the state reached on given input & add to path
+            currentState = transition.target;
+            path.push(currentState);
+        }
+
+        // Check if the current state is an accepting state and set message
+        const isAccepted = acceptingStates.has(states.find(s => s.label === currentState)?.id);
+
+        setTestResult({
+            accepted: isAccepted,
+            message: isAccepted ? 'Accepted' : 'Rejected: Ended in non-accepting state',
+            path
+        });
+        highlightPath(path);
+    };
+
+    // Function to highlight the path in the visualization
+    const highlightPath = (path) => {
+        if (!graph || !states || path.length === 0) return;
+
+        // Reset all states and transitions to default appearance
+        states.forEach(state => {
+            state.node.attr('body/fill',
+                acceptingStates.has(state.id) ? '#90EE90' : '#ccccff'
+            );
+        });
+
+        graph.getLinks().forEach(link => {
+            link.attr('line/stroke', 'black');
+            link.attr('line/strokeWidth', 2);
+        });
+
+        // Highlight the states and transitions in the path
+        for (let i = 0; i < path.length - 1; i++) {
+            const currentState = path[i];
+            const nextState = path[i + 1];
+
+            const currentNode = states.find(s => s.label === currentState).node;
+            if (currentNode) {
+                currentNode.attr('body/fill', '#FFB6C1');
+            }
+
+            const link = graph.getLinks().find(link =>
+                link.getSourceElement().id === currentNode.id &&
+                link.getTargetElement().id === states.find(s => s.label === nextState).node.id
+            );
+
+            if (link) {
+                link.attr('line/stroke', '#FF69B4');
+                link.attr('line/strokeWidth', 3);
+            }
+        }
+
+        // Highlight the final state reached
+        const finalState = states.find(s => s.label === path[path.length - 1]).node;
+        if (finalState) {
+            finalState.attr('body/fill', '#FF69B4');
+        }
+    };
+
+    // Function to reset highlighting
+    const resetHighlighting = () => {
+        if (!graph || !states) return;
+
+        // Reset states to default colors
+        states.forEach(state => {
+            state.node.attr('body/fill',
+                acceptingStates.has(state.id) ? '#90EE90' : '#ccccff'
+            );
+        });
+
+        // Reset transitions to default appearance
+        graph.getLinks().forEach(link => {
+            link.attr('line/stroke', 'black');
+            link.attr('line/strokeWidth', 2);
+        });
+    };
+
 
     return (
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
             <div>
                 <div>
+<<<<<<< Updated upstream
                     <button onClick={addState}>Add State</button>
                     <button onClick={startAddingTransition} disabled={isAddingTransition}>Add Transition</button>
                     <button onClick={saveMachine}>Save Machine</button>
@@ -333,53 +455,139 @@ const DfaNfaVisualizer = () => {
                                 ))}
                             </select>
 
+=======
+                    <button onClick={addState} className="button">Add State</button>
+                    <button onClick={startAddingTransition} disabled={isAddingTransition} className="button">Add Transition</button>
+                    <button onClick={saveMachine} className="button">Save Machine</button>
+                    <input type="file" onChange={loadMachine} accept=".json" style={{ display: 'none' }} id="fileInput"/>
+                    <button onClick={() => document.getElementById('fileInput').click()} className="button">
+                        Load Machine
+                    </button>
+                    <div style={{ marginTop: '10px', padding: '10px', border: '1px solid #ccc' }}>
+                        <h4>Test String (Starting from q0)</h4>
+                        
+                        {/* String input and test button */}
+                        <div style={{ marginTop: '5px' }}>
+>>>>>>> Stashed changes
                             <input
                                 type="text"
-                                placeholder="Transition Character"
-                                value={transitionLabel}
-                                onChange={(e) => setTransitionLabel(e.target.value)}
-                                maxLength="1"
+                                value={testString}
+                                onChange={(e) => {
+                                    //on change of input reset path and test result
+                                    resetHighlighting();
+                                    setTestString(e.target.value);
+                                    setTestResult(null); 
+                                }}
+                                placeholder="Enter test string"
                             />
-
-                            <button
-                                onClick={confirmTransition}
-                                disabled={!transitionSource || !transitionTarget || !transitionLabel}
+                            <button 
+                                onClick={testInput}
+                                disabled={testString === ''}
+                                className="button"
                             >
-                                Confirm Transition
+                                Test String
                             </button>
+                        </div>
+    
+            {/* Result display */}
+            {testResult && (
+                <div style={{
+                    marginTop: '10px',
+                    padding: '5px',
+                    backgroundColor: testResult.accepted ? '#d4edda' : '#f8d7da',
+                    borderRadius: '4px'
+                }}>
+                    <strong>Result:</strong> {testResult.message}
+                    {testResult.path && (
+                        <div>
+                            <strong>Path:</strong> {testResult.path.join(' → ')}
                         </div>
                     )}
                 </div>
+            )}
+        </div>
+                        {isAddingTransition && (
+                            <div style={{ marginTop: '10px' }}>
+                                <h4>Adding Transition</h4>
+                                <select onChange={(e) => setTransitionSource(e.target.value)} value={transitionSource || ''}>
+                                    <option value="">Select Source State</option>
+                                    {states.map(state => (
+                                        <option key={state.id} value={state.id}>{state.label}</option>
+                                    ))}
+                                </select>
 
-                <div ref={paperRef} style={{ width: '600px', height: '600px', border: '1px solid #ccc', marginTop: '20px' }}></div>
-            </div>
+                                <select onChange={(e) => setTransitionTarget(e.target.value)} value={transitionTarget || ''}>
+                                    <option value="">Select Target State</option>
+                                    {states.map(state => (
+                                        <option key={state.id} value={state.id}>{state.label}</option>
+                                    ))}
+                                </select>
 
+<<<<<<< Updated upstream
             <div style={{ marginLeft: '20px' }}>
                 <h3>States</h3>
                 <div style={{ marginBottom: '20px' }}>
                     {states.map(state => (
                         <div key={state.id} style={{ marginBottom: '5px' }}>
                             <label>
+=======
+>>>>>>> Stashed changes
                                 <input
-                                    type="checkbox"
-                                    checked={acceptingStates.has(state.id)}
-                                    onChange={() => toggleAcceptingState(state.id)}
+                                    type="text"
+                                    placeholder="Transition Character"
+                                    value={transitionLabel}
+                                    onChange={(e) => setTransitionLabel(e.target.value)}
+                                    maxLength="1"
                                 />
-                                {state.label} (Toggle Accepting State)
-                            </label>
-                        </div>
-                    ))}
+
+                                <button
+                                    onClick={confirmTransition}
+                                    disabled={!transitionSource || !transitionTarget || !transitionLabel}
+                                >
+                                    Confirm Transition
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div ref={paperRef} style={{ width: '600px', height: '600px', border: '1px solid #ccc', marginTop: '20px' }}></div>
                 </div>
 
+<<<<<<< Updated upstream
                 <h3>Transitions</h3>
                 <ul>
                     {transitions.map((t, index) => (
                         <li key={index}>{`${t.source} --${t.label}--> ${t.target}`}</li>
                     ))}
                 </ul>
+=======
+                <div style={{ marginLeft: '20px' }}>
+                    <h3 style={{ color: 'black' }}>All States</h3>
+                    <div style={{ marginBottom: '20px' }}>
+                        {states.map(state => (
+                            <div key={state.id} style={{ marginBottom: '5px' }}>
+                                <label style={{ color: 'black' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={acceptingStates.has(state.id)}
+                                        onChange={() => toggleAcceptingState(state.id)}
+                                    />
+                                    {state.label} (Toggle Accepting State)
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+
+                    <h3 style={{ color: 'black' }}>All Transitions</h3>
+                    <ul>
+                        {transitions.map((t, index) => (
+                            <li key={index} style={{ color: 'black' }}>{`${t.source} --${t.label}--> ${t.target}`}</li>
+                        ))}
+                    </ul>
+                </div>
+>>>>>>> Stashed changes
             </div>
-        </div>
-    );
-};
+        );
+    };
 
 export default DfaNfaVisualizer;

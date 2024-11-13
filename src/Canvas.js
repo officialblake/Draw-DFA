@@ -452,7 +452,7 @@ const DfaNfaVisualizer = () => {
                 <div style={{
                     marginTop: '10px',
                     padding: '5px',
-                    backgroundColor: testResult.accepted ? '#d4edda' : '#f8d7da',
+                    backgroundColor: testResult.accepted ? 'green' : 'red',
                     borderRadius: '4px'
                 }}>
                     <strong>Result:</strong> {testResult.message}

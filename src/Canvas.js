@@ -14,6 +14,7 @@ const DfaNfaVisualizer = () => {
     const [acceptingStates, setAcceptingStates] = useState(new Set());
     const [testString, setTestString] = useState('');
     const [testResult, setTestResult] = useState(null);
+    const [startState, setStartState] = useState(null);
 
     useEffect(() => {
         const newGraph = new dia.Graph({}, { cellNamespace: shapes });
@@ -29,6 +30,21 @@ const DfaNfaVisualizer = () => {
 
         setGraph(newGraph);
     }, []);
+
+    
+    const setStartingState = (stateId) => {
+        // Update visual appearance of previous start state
+        if (startState) {
+            const prevStartState = states.find(s => s.id === startState);
+            prevStartState?.node.attr('body/fill', acceptingStates.has(prevStartState.id) ? '#90EE90' : '#ccccff');
+        }
+    
+        // Update visual appearance of new start state
+        const newStartState = states.find(s => s.id === stateId);
+        newStartState?.node.attr('body/fill', '#FFE4E1');
+    
+        setStartState(stateId);
+    };
 
     const toggleAcceptingState = (stateId) => {
         setAcceptingStates(prev => {
@@ -149,6 +165,7 @@ const DfaNfaVisualizer = () => {
 
     const saveMachine = () => {
         const machineData = {
+            startState,
             states: states.map(state => ({
                 label: state.label,
                 id: state.id,
@@ -187,6 +204,8 @@ const DfaNfaVisualizer = () => {
     
             const stateMap = {};
             const newAcceptingStates = new Set();
+
+            setStartingState(data.startState);
     
             data.states.forEach(state => {
                 const circle = new shapes.standard.Circle({
@@ -196,7 +215,7 @@ const DfaNfaVisualizer = () => {
                 circle.resize(60, 60);
                 circle.attr({
                     body: { 
-                        fill: state.isAccepting ? '#90EE90' : '#ccccff', 
+                        fill: state.isAccepting ? '#90EE90' : data.startState === circle.id ? '#FFE4E1':'#ccccff', 
                         strokeWidth: 3 
                     },
                     label: { text: state.label, fill: 'black', fontWeight: 'bold' },
@@ -303,9 +322,10 @@ const DfaNfaVisualizer = () => {
             return;
         }
 
-        // assume we start at q0
-        let currentState = 'q0';
-        //initialize array which holds path
+        // Start at the designated start state
+        let currentState = states.find(s => s.id === startState)?.label;
+        
+        
         if(!states.find(t => t.label === currentState)) {
             setTestResult({
                 accepted: false,
@@ -314,8 +334,8 @@ const DfaNfaVisualizer = () => {
             });
             return;
         }
+        //initialize array which holds path
         const path = [currentState];
-
         // Process each character in the input string
         for (const symbol of testString) {
             const transition = transitions.find(
@@ -398,9 +418,15 @@ const DfaNfaVisualizer = () => {
 
         // Reset states to default colors
         states.forEach(state => {
-            state.node.attr('body/fill',
-                acceptingStates.has(state.id) ? '#90EE90' : '#ccccff'
-            );
+            if(state.id === startState){
+                state.node.attr('body/fill', '#FFE4E1');
+            }
+            else{
+                state.node.attr('body/fill',
+                    acceptingStates.has(state.id) ? '#90EE90' : '#ccccff'
+                );
+            }
+
         });
 
         // Reset transitions to default appearance
@@ -422,8 +448,20 @@ const DfaNfaVisualizer = () => {
                     <button onClick={() => document.getElementById('fileInput').click()} className="button">
                         Load Machine
                     </button>
+                    <div style={{ marginTop: '10px' }}>
+                    <h4 style={{ color: 'black' }}>Set Starting State</h4>
+                    <select
+                        value={startState || ''}
+                        onChange={(e) => setStartingState(e.target.value)}
+                    >
+                        <option value="">Select Starting State</option>
+                        {states.map(state => (
+                            <option key={state.id} value={state.id}>{state.label}</option>
+                        ))}
+                    </select>
+                </div>
                     <div style={{ marginTop: '10px', padding: '10px', border: '1px solid #ccc' }}>
-                        <h4 style={{ color: 'black' }}>Test String (Starting from q0)</h4>
+                        <h4 style={{ color: 'black' }}>Test String (Starting from {states.find(s => s.id === startState)?.label})</h4>
                         
                         {/* String input and test button */}
                         <div style={{ marginTop: '5px' }}>

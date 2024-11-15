@@ -94,7 +94,7 @@ See the [open issues](https://github.com/officialblake/Draw-DFA/issues) for a fu
 <!-- CONTRIBUTORS -->
 ## Contributors
 
-Four students worked together to implement this project. 
+Three students worked together to implement this project. 
 
 <a href="https://github.com/officialblake/Draw-DFA/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=officialblake/Draw-DFA" alt="contrib.rocks image" />

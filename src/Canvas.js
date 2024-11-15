@@ -423,7 +423,7 @@ const DfaNfaVisualizer = () => {
                         Load Machine
                     </button>
                     <div style={{ marginTop: '10px', padding: '10px', border: '1px solid #ccc' }}>
-                        <h4>Test String (Starting from q0)</h4>
+                        <h4 style={{ color: 'black' }}>Test String (Starting from q0)</h4>
                         
                         {/* String input and test button */}
                         <div style={{ marginTop: '5px' }}>

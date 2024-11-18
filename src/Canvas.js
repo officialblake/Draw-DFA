@@ -15,6 +15,7 @@ const DfaNfaVisualizer = () => {
     const [testString, setTestString] = useState('');
     const [testResult, setTestResult] = useState(null);
     const [startState, setStartState] = useState(null);
+    const [machineType, setMachineType] = useState('');
 
     useEffect(() => {
         const newGraph = new dia.Graph({}, { cellNamespace: shapes });
@@ -165,6 +166,7 @@ const DfaNfaVisualizer = () => {
 
     const saveMachine = () => {
         const machineData = {
+            machineType,
             startState,
             states: states.map(state => ({
                 label: state.label,
@@ -206,7 +208,7 @@ const DfaNfaVisualizer = () => {
             const newAcceptingStates = new Set();
 
             setStartingState(data.startState);
-    
+            setMachineType(data.machineType);
             data.states.forEach(state => {
                 const circle = new shapes.standard.Circle({
                     id: state.id  // Set the ID explicitly
@@ -367,6 +369,90 @@ const DfaNfaVisualizer = () => {
         });
         highlightPath(path);
     };
+    const testNFAInput = () => {
+        // Ensure states and transitions are properly defined
+        if (!states || !transitions || !testString) {
+            setTestResult({
+                accepted: false,
+                message: 'Error: States, transitions, or input string not properly defined',
+                path: []
+            });
+            return;
+        }
+    
+        // Helper function to perform DFS from a given state with remaining input
+        const dfs = (currentState, remainingInput, currentPath) => {
+            // If we've processed all input, check if we're in an accepting state
+            if (remainingInput.length === 0) {
+                const stateObj = states.find(s => s.label === currentState);
+                if (stateObj && acceptingStates.has(stateObj.id)) {
+                    return {
+                        accepted: true,
+                        path: currentPath
+                    };
+                }
+                return null;
+            }
+    
+            // Get current symbol and remaining input
+            const symbol = remainingInput[0];
+            const restInput = remainingInput.slice(1);
+    
+            // Find all possible transitions for current state and symbol
+            const possibleTransitions = transitions.filter(
+                t => t.source === currentState && t.label === symbol
+            );
+    
+            // Try each possible transition
+            for (const transition of possibleTransitions) {
+                const newPath = [...currentPath, transition.target];
+                const result = dfs(transition.target, restInput, newPath);
+                
+                // If we found an accepting path, return it
+                if (result) {
+                    return result;
+                }
+            }
+    
+            // If no accepting path found from this state, return null
+            return null;
+        };
+    
+        // Start the search from the initial state
+        const startStateLabel = states.find(s => s.id === startState)?.label;
+        
+        if (!startStateLabel) {
+            setTestResult({
+                accepted: false,
+                message: 'Error: Start state not properly defined',
+                path: []
+            });
+            return;
+        }
+    
+        // Convert input string to array of characters
+        const inputArray = Array.from(testString);
+        const result = dfs(startStateLabel, inputArray, [startStateLabel]);
+    
+        if (result) {
+            setTestResult({
+                accepted: true,
+                message: 'Accepted',
+                path: result.path
+            });
+        } else {
+            setTestResult({
+                accepted: false,
+                message: 'Rejected: No accepting path found',
+                path: []
+            });
+        }
+    
+        // Highlight the accepting path if one was found
+        if (result && result.path) {
+            highlightPath(result.path);
+        }
+    };
 
     // Function to highlight the path in the visualization
     const highlightPath = (path) => {
@@ -441,6 +527,17 @@ const DfaNfaVisualizer = () => {
         <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: '1000px'}}>
             <div>
                 <div>
+                <select 
+                    value={machineType || ''} 
+                    onChange={(e) => setMachineType(e.target.value)}
+                >
+                    <option value="" disabled>
+                        Select Machine Type
+                    </option>
+                    <option value="DFA">DFA</option>
+                    <option value="NFA">NFA</option>
+                </select>
+
                     <button onClick={addState} className="button">Add State</button>
                     <button onClick={startAddingTransition} disabled={isAddingTransition} className="button">Add Transition</button>
                     <button onClick={saveMachine} className="button">Save Machine</button>
@@ -477,7 +574,7 @@ const DfaNfaVisualizer = () => {
                                 placeholder="Enter test string"
                             />
                             <button 
-                                onClick={testInput}
+                                onClick={machineType === "DFA" ? testInput : testNFAInput}
                                 disabled={testString === ''}
                                 className="button"
                             >

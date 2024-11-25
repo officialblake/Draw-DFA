@@ -382,8 +382,9 @@ const DfaNfaVisualizer = () => {
     
         // Helper function to perform DFS from a given state with remaining input
         const dfs = (currentState, remainingInput, currentPath) => {
-            // If we've processed all input, check if we're in an accepting state
+            // If we've processed all input, explore epsilon transitions and check accepting states
             if (remainingInput.length === 0) {
+                // Check if the current state is accepting
                 const stateObj = states.find(s => s.label === currentState);
                 if (stateObj && acceptingStates.has(stateObj.id)) {
                     return {
@@ -391,37 +392,56 @@ const DfaNfaVisualizer = () => {
                         path: currentPath
                     };
                 }
+        
+                // Explore epsilon transitions
+                const epsilonTransitions = transitions.filter(
+                    t => t.source === currentState && t.label === "ε"
+                );
+        
+                for (const transition of epsilonTransitions) {
+                    const result = dfs(
+                        transition.target,
+                        remainingInput, // Keep input unchanged for epsilon transitions
+                        [...currentPath, transition.target]
+                    );
+        
+                    // If an accepting path is found, return it
+                    if (result) {
+                        return result;
+                    }
+                }
+        
+                // If no accepting path is found, return null
                 return null;
             }
         
-            // Get current symbol and remaining input
+            // Process the next symbol in the input
             const symbol = remainingInput[0];
             const restInput = remainingInput.slice(1);
         
-            // Find all possible transitions for current state and symbol
+            // Find all possible transitions for the current symbol or epsilon
             const possibleTransitions = transitions.filter(
                 t => t.source === currentState && (t.label === symbol || t.label === "ε")
             );
         
             // Try each possible transition
             for (const transition of possibleTransitions) {
-                const newPath = [...currentPath, transition.target];
                 const result = dfs(
                     transition.target,
-                    //if the transition label is epsilon dont splice the remaining input
                     transition.label === "ε" ? remainingInput : restInput,
-                    newPath
+                    [...currentPath, transition.target]
                 );
         
-                // If we found an accepting path, return it
+                // If an accepting path is found, return it
                 if (result) {
                     return result;
                 }
             }
         
-            // If no accepting path found from this state, return null
+            // If no accepting path is found, return null
             return null;
         };
+        
         
     
         // Start the search from the initial state

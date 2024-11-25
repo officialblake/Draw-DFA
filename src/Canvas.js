@@ -315,7 +315,7 @@ const DfaNfaVisualizer = () => {
     // Function to test a given string input
     const testInput = () => {
         // Ensure states and transitions are properly defined
-        if (!states || !transitions || !testString) {
+        if (!states || !transitions) {
             setTestResult({
                 accepted: false,
                 message: 'Error: States, transitions, or input string not properly defined',
@@ -371,7 +371,7 @@ const DfaNfaVisualizer = () => {
     };
     const testNFAInput = () => {
         // Ensure states and transitions are properly defined
-        if (!states || !transitions || !testString) {
+        if (!states || !transitions) {
             setTestResult({
                 accepted: false,
                 message: 'Error: States, transitions, or input string not properly defined',
@@ -585,7 +585,7 @@ const DfaNfaVisualizer = () => {
                             />
                             <button 
                                 onClick={machineType === "DFA" ? testInput : testNFAInput}
-                                disabled={testString === ''}
+                                //disabled={}
                                 className="button"
                             >
                                 Test String

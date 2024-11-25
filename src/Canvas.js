@@ -98,7 +98,7 @@ const DfaNfaVisualizer = () => {
 
     const confirmTransition = () => {
         if (!graph || !transitionSource || !transitionTarget || !transitionLabel) return;
-
+        if(machineType === "DFA" && transitionLabel === "ε") return;
         const sourceState = states.find(state => state.id === transitionSource);
         const targetState = states.find(state => state.id === transitionTarget);
 
@@ -393,30 +393,36 @@ const DfaNfaVisualizer = () => {
                 }
                 return null;
             }
-    
+        
             // Get current symbol and remaining input
             const symbol = remainingInput[0];
             const restInput = remainingInput.slice(1);
-    
+        
             // Find all possible transitions for current state and symbol
             const possibleTransitions = transitions.filter(
-                t => t.source === currentState && t.label === symbol
+                t => t.source === currentState && (t.label === symbol || t.label === "ε")
             );
-    
+        
             // Try each possible transition
             for (const transition of possibleTransitions) {
                 const newPath = [...currentPath, transition.target];
-                const result = dfs(transition.target, restInput, newPath);
-                
+                const result = dfs(
+                    transition.target,
+                    //if the transition label is epsilon dont splice the remaining input
+                    transition.label === "ε" ? remainingInput : restInput,
+                    newPath
+                );
+        
                 // If we found an accepting path, return it
                 if (result) {
                     return result;
                 }
             }
-    
+        
             // If no accepting path found from this state, return null
             return null;
         };
+        
     
         // Start the search from the initial state
         const startStateLabel = states.find(s => s.id === startState)?.label;
@@ -545,6 +551,10 @@ const DfaNfaVisualizer = () => {
                     <button onClick={() => document.getElementById('fileInput').click()} className="button">
                         Load Machine
                     </button>
+                    {machineType === "NFA" &&
+                        (
+                            <h4 style={{color : 'black'}}>Epsilon symbol for NFA (copy and paste) ε</h4>
+                    )}
                     <div style={{ marginTop: '10px' }}>
                     <h4 style={{ color: 'black' }}>Set Starting State</h4>
                     <select
@@ -599,6 +609,7 @@ const DfaNfaVisualizer = () => {
                 </div>
             )}
         </div>
+                    
                         {isAddingTransition && (
                             <div style={{ marginTop: '10px' }}>
                                 <h4>Adding Transition</h4>

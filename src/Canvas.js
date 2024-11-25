@@ -428,6 +428,7 @@ const DfaNfaVisualizer = () => {
             for (const transition of possibleTransitions) {
                 const result = dfs(
                     transition.target,
+                    //if the transition label is epsilon dont splice the remaining input
                     transition.label === "ε" ? remainingInput : restInput,
                     [...currentPath, transition.target]
                 );

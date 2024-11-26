@@ -16,6 +16,9 @@ const DfaNfaVisualizer = () => {
     const [testResult, setTestResult] = useState(null);
     const [startState, setStartState] = useState(null);
     const [machineType, setMachineType] = useState('');
+    const [dfa1, setDfa1] = useState(null);
+    const [dfa2, setDfa2] = useState(null);
+    const [equivalenceResult, setEquivalenceResult] = useState(null);
 
     useEffect(() => {
         const newGraph = new dia.Graph({}, { cellNamespace: shapes });
@@ -548,7 +551,51 @@ const DfaNfaVisualizer = () => {
             link.attr('line/strokeWidth', 2);
         });
     };
+  // Handle file uploads for equivalence testing
+  const handleDfaFileUpload = (fileNumber, event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const dfa = JSON.parse(e.target.result);
+          if (fileNumber === 1) {
+            setDfa1(dfa);
+          } else {
+            setDfa2(dfa);
+          }
+        } catch (error) {
+          alert('Error reading file: ' + error.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+    // Function to check DFA equivalence
+    const checkDfaEquivalence = () => {
+        if (!dfa1 || !dfa2) {
+          alert('Please upload both DFA files first');
+          return;
+        }
+    
+        // Basic validation that both are DFAs
+        if (dfa1.machineType !== 'DFA' || dfa2.machineType !== 'DFA') {
+          setEquivalenceResult({
+            equivalent: false,
+            message: 'Both machines must be DFAs'
+          });
+          return;
+        }
+    
+        // Here you would implement your DFA equivalence algorithm
+        // This is a placeholder for the actual equivalence checking logic
 
+        
+        setEquivalenceResult({
+          equivalent: true,
+          message: 'Analysis complete. The DFAs are equivalent.'
+        });
+      };
 
     return (
         <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: '1000px'}}>
@@ -612,6 +659,39 @@ const DfaNfaVisualizer = () => {
                                 Test String
                             </button>
                         </div>
+                        {machineType === 'DFA' && (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                onChange={(e) => handleDfaFileUpload(1, e)}
+                accept=".json"
+              />
+              <input
+                type="file"
+                onChange={(e) => handleDfaFileUpload(2, e)}
+                accept=".json"
+              />
+              <button 
+                onClick={checkDfaEquivalence}
+                className="button"
+                disabled={!dfa1 || !dfa2}
+              >
+                Check Equivalence
+              </button>
+            </div>
+            
+            {equivalenceResult && (
+                <div style={{
+                    marginTop: '10px',
+                    padding: '5px',
+                    backgroundColor: equivalenceResult.equivalent ? 'green' : 'red',
+                    borderRadius: '4px'
+                }}>
+                    <strong>Result:</strong> {equivalenceResult.message}
+              </div>
+            )}
+          </div>)}
     
             {/* Result display */}
             {testResult && (

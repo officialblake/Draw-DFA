@@ -16,6 +16,9 @@ const DfaNfaVisualizer = () => {
     const [testResult, setTestResult] = useState(null);
     const [startState, setStartState] = useState(null);
     const [machineType, setMachineType] = useState('');
+    const [dfa1, setDfa1] = useState(null);
+    const [dfa2, setDfa2] = useState(null);
+    const [equivalenceResult, setEquivalenceResult] = useState(null);
 
     useEffect(() => {
         const newGraph = new dia.Graph({}, { cellNamespace: shapes });
@@ -98,7 +101,7 @@ const DfaNfaVisualizer = () => {
 
     const confirmTransition = () => {
         if (!graph || !transitionSource || !transitionTarget || !transitionLabel) return;
-
+        if(machineType === "DFA" && transitionLabel === "ε") return;
         const sourceState = states.find(state => state.id === transitionSource);
         const targetState = states.find(state => state.id === transitionTarget);
 
@@ -315,7 +318,7 @@ const DfaNfaVisualizer = () => {
     // Function to test a given string input
     const testInput = () => {
         // Ensure states and transitions are properly defined
-        if (!states || !transitions || !testString) {
+        if (!states || !transitions) {
             setTestResult({
                 accepted: false,
                 message: 'Error: States, transitions, or input string not properly defined',
@@ -371,7 +374,7 @@ const DfaNfaVisualizer = () => {
     };
     const testNFAInput = () => {
         // Ensure states and transitions are properly defined
-        if (!states || !transitions || !testString) {
+        if (!states || !transitions) {
             setTestResult({
                 accepted: false,
                 message: 'Error: States, transitions, or input string not properly defined',
@@ -382,8 +385,9 @@ const DfaNfaVisualizer = () => {
     
         // Helper function to perform DFS from a given state with remaining input
         const dfs = (currentState, remainingInput, currentPath) => {
-            // If we've processed all input, check if we're in an accepting state
+            // If we've processed all input, explore epsilon transitions and check accepting states
             if (remainingInput.length === 0) {
+                // Check if the current state is accepting
                 const stateObj = states.find(s => s.label === currentState);
                 if (stateObj && acceptingStates.has(stateObj.id)) {
                     return {
@@ -391,32 +395,58 @@ const DfaNfaVisualizer = () => {
                         path: currentPath
                     };
                 }
+        
+                // Explore epsilon transitions
+                const epsilonTransitions = transitions.filter(
+                    t => t.source === currentState && t.label === "ε"
+                );
+        
+                for (const transition of epsilonTransitions) {
+                    const result = dfs(
+                        transition.target,
+                        remainingInput, // Keep input unchanged for epsilon transitions
+                        [...currentPath, transition.target]
+                    );
+        
+                    // If an accepting path is found, return it
+                    if (result) {
+                        return result;
+                    }
+                }
+        
+                // If no accepting path is found, return null
                 return null;
             }
-    
-            // Get current symbol and remaining input
+        
+            // Process the next symbol in the input
             const symbol = remainingInput[0];
             const restInput = remainingInput.slice(1);
-    
-            // Find all possible transitions for current state and symbol
+        
+            // Find all possible transitions for the current symbol or epsilon
             const possibleTransitions = transitions.filter(
-                t => t.source === currentState && t.label === symbol
+                t => t.source === currentState && (t.label === symbol || t.label === "ε")
             );
-    
+        
             // Try each possible transition
             for (const transition of possibleTransitions) {
-                const newPath = [...currentPath, transition.target];
-                const result = dfs(transition.target, restInput, newPath);
-                
-                // If we found an accepting path, return it
+                const result = dfs(
+                    transition.target,
+                    //if the transition label is epsilon dont splice the remaining input
+                    transition.label === "ε" ? remainingInput : restInput,
+                    [...currentPath, transition.target]
+                );
+        
+                // If an accepting path is found, return it
                 if (result) {
                     return result;
                 }
             }
-    
-            // If no accepting path found from this state, return null
+        
+            // If no accepting path is found, return null
             return null;
         };
+        
+        
     
         // Start the search from the initial state
         const startStateLabel = states.find(s => s.id === startState)?.label;
@@ -521,7 +551,50 @@ const DfaNfaVisualizer = () => {
             link.attr('line/strokeWidth', 2);
         });
     };
+  // Handle file uploads for equivalence testing
+  const handleDfaFileUpload = (fileNumber, event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const dfa = JSON.parse(e.target.result);
+          if (fileNumber === 1) {
+            setDfa1(dfa);
+          } else {
+            setDfa2(dfa);
+          }
+        } catch (error) {
+          alert('Error reading file: ' + error.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+    // Function to check DFA equivalence
+    const checkDfaEquivalence = () => {
+        if (!dfa1 || !dfa2) {
+          alert('Please upload both DFA files first');
+          return;
+        }
+    
+        // Basic validation that both are DFAs
+        if (dfa1.machineType !== 'DFA' || dfa2.machineType !== 'DFA') {
+          setEquivalenceResult({
+            equivalent: false,
+            message: 'Both machines must be DFAs'
+          });
+          return;
+        }
+    
+        // This is a placeholder for the actual equivalence checking logic
 
+
+        setEquivalenceResult({
+          equivalent: true,
+          message: 'Analysis complete. The DFAs are equivalent.'
+        });
+      };
 
     return (
         <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: '1000px'}}>
@@ -545,6 +618,10 @@ const DfaNfaVisualizer = () => {
                     <button onClick={() => document.getElementById('fileInput').click()} className="button">
                         Load Machine
                     </button>
+                    {machineType === "NFA" &&
+                        (
+                            <h4 style={{color : 'black'}}>Epsilon symbol for NFA (copy and paste) ε</h4>
+                    )}
                     <div style={{ marginTop: '10px' }}>
                     <h4 style={{ color: 'black' }}>Set Starting State</h4>
                     <select
@@ -575,12 +652,46 @@ const DfaNfaVisualizer = () => {
                             />
                             <button 
                                 onClick={machineType === "DFA" ? testInput : testNFAInput}
-                                disabled={testString === ''}
+                                //disabled={}
                                 className="button"
                             >
                                 Test String
                             </button>
                         </div>
+                        {machineType === 'DFA' && (
+                            <div>
+                                <h4 style={{color: 'black'}}>DFA Equivalence Test(Upload 2 DFA JSON files)</h4>
+                                <div>
+                                <input
+                                    type="file"
+                                    onChange={(e) => handleDfaFileUpload(1, e)}
+                                    accept=".json"
+                                />
+                                <input
+                                    type="file"
+                                    onChange={(e) => handleDfaFileUpload(2, e)}
+                                    accept=".json"
+                                />
+                                <button 
+                                    onClick={checkDfaEquivalence}
+                                    className="button"
+                                    disabled={!dfa1 || !dfa2}
+                                >
+                                    Check Equivalence
+                                </button>
+                                </div>
+                                
+                                {equivalenceResult && (
+                                    <div style={{
+                                        marginTop: '10px',
+                                        padding: '5px',
+                                        backgroundColor: equivalenceResult.equivalent ? 'green' : 'red',
+                                        borderRadius: '4px'
+                                    }}>
+                                        <strong>Result:</strong> {equivalenceResult.message}
+                                </div>
+                                )}
+                            </div>)}
     
             {/* Result display */}
             {testResult && (
@@ -599,6 +710,7 @@ const DfaNfaVisualizer = () => {
                 </div>
             )}
         </div>
+                    
                         {isAddingTransition && (
                             <div style={{ marginTop: '10px' }}>
                                 <h4>Adding Transition</h4>

@@ -586,7 +586,22 @@ const DfaNfaVisualizer = () => {
           });
           return;
         }
+        const newMachine = {
+            machineType: "DFA",
+            startState: null,
+            states: [],
+            transitions: []
+        }
     
+
+        let currState1 = dfa1.states.find(s => s.id === dfa1.startState);
+        let currState2 = dfa2.states.find(s => s.id === dfa2.startState);
+        
+        let currTrans1 = dfa1.transitions.filter(t => t.sourceId === currState1.id);
+        let currTrans2 = dfa2.transitions.filter(t => t.sourceId === currState2.id);
+        
+        console.log("Transitions from DFA1 start state:", currTrans1);
+        console.log("Transitions from DFA2 start state:", currTrans2); 
         // This is a placeholder for the actual equivalence checking logic
 
 

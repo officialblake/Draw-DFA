@@ -659,38 +659,39 @@ const DfaNfaVisualizer = () => {
                             </button>
                         </div>
                         {machineType === 'DFA' && (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-4">
-              <input
-                type="file"
-                onChange={(e) => handleDfaFileUpload(1, e)}
-                accept=".json"
-              />
-              <input
-                type="file"
-                onChange={(e) => handleDfaFileUpload(2, e)}
-                accept=".json"
-              />
-              <button 
-                onClick={checkDfaEquivalence}
-                className="button"
-                disabled={!dfa1 || !dfa2}
-              >
-                Check Equivalence
-              </button>
-            </div>
-            
-            {equivalenceResult && (
-                <div style={{
-                    marginTop: '10px',
-                    padding: '5px',
-                    backgroundColor: equivalenceResult.equivalent ? 'green' : 'red',
-                    borderRadius: '4px'
-                }}>
-                    <strong>Result:</strong> {equivalenceResult.message}
-              </div>
-            )}
-          </div>)}
+                            <div>
+                                <h4 style={{color: 'black'}}>DFA Equivalence Test(Upload 2 DFA JSON files)</h4>
+                                <div>
+                                <input
+                                    type="file"
+                                    onChange={(e) => handleDfaFileUpload(1, e)}
+                                    accept=".json"
+                                />
+                                <input
+                                    type="file"
+                                    onChange={(e) => handleDfaFileUpload(2, e)}
+                                    accept=".json"
+                                />
+                                <button 
+                                    onClick={checkDfaEquivalence}
+                                    className="button"
+                                    disabled={!dfa1 || !dfa2}
+                                >
+                                    Check Equivalence
+                                </button>
+                                </div>
+                                
+                                {equivalenceResult && (
+                                    <div style={{
+                                        marginTop: '10px',
+                                        padding: '5px',
+                                        backgroundColor: equivalenceResult.equivalent ? 'green' : 'red',
+                                        borderRadius: '4px'
+                                    }}>
+                                        <strong>Result:</strong> {equivalenceResult.message}
+                                </div>
+                                )}
+                            </div>)}
     
             {/* Result display */}
             {testResult && (

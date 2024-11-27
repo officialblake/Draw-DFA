@@ -587,10 +587,9 @@ const DfaNfaVisualizer = () => {
           return;
         }
     
-        // Here you would implement your DFA equivalence algorithm
         // This is a placeholder for the actual equivalence checking logic
 
-        
+
         setEquivalenceResult({
           equivalent: true,
           message: 'Analysis complete. The DFAs are equivalent.'

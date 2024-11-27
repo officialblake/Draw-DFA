@@ -658,7 +658,7 @@ const DfaNfaVisualizer = () => {
                                 Test String
                             </button>
                         </div>
-                        {machineType === 'DFA' && (
+                        {(
                             <div>
                                 <h4 style={{color: 'black'}}>DFA Equivalence Test(Upload 2 DFA JSON files)</h4>
                                 <div>

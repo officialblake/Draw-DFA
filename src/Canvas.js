@@ -593,23 +593,77 @@ const DfaNfaVisualizer = () => {
             transitions: []
         }
     
-
+        let alphabet = new Set();
+        dfa1.transitions.forEach(t => alphabet.add(t.label));
+    
+        // Stack to keep track of state pairs we need to process
+        let statesToProcess = [];
+    
+        // Start with initial states
         let currState1 = dfa1.states.find(s => s.id === dfa1.startState);
         let currState2 = dfa2.states.find(s => s.id === dfa2.startState);
+        const currStatePair = {
+            id: `${currState1.id},${currState2.id}`,
+            label: `${currState1.label},${currState2.label}`,
+            isAccepting:
+              (currState1.isAccepting && !currState2.isAccepting) ||
+              (!currState1.isAccepting && currState2.isAccepting)
+        };
         
-        let currTrans1 = dfa1.transitions.filter(t => t.sourceId === currState1.id);
-        let currTrans2 = dfa2.transitions.filter(t => t.sourceId === currState2.id);
+        // Initialize machine with start state
+        newMachine.startState = currStatePair;
+        newMachine.states.push(currStatePair);
+        statesToProcess.push([currState1, currState2]);
+    
+        // Process states until no new ones are found (lazy construction)
+        while (statesToProcess.length > 0) {
+            [currState1, currState2] = statesToProcess.pop();
+            const currentPair = newMachine.states.find(s => s.id === `${currState1.id},${currState2.id}`);
+    
+            alphabet.forEach(letter => {
+                // Find transitions for current letter
+                const currTrans1 = dfa1.transitions.find(t => t.sourceId === currState1.id && t.label === letter);
+                const currTrans2 = dfa2.transitions.find(t => t.sourceId === currState2.id && t.label === letter);
+    
+                // Find next states
+                const nextState1 = dfa1.states.find(state => state.id === currTrans1.targetId);
+                const nextState2 = dfa2.states.find(state => state.id === currTrans2.targetId);
+    
+                // Create next state pair
+                const nextStatePair = {
+                    id: `${nextState1.id},${nextState2.id}`,
+                    label: `${nextState1.label},${nextState2.label}`,
+                    isAccepting:
+                        (nextState1.isAccepting && !nextState2.isAccepting) ||
+                        (!nextState1.isAccepting && nextState2.isAccepting)
+                };
+    
+                // Add transition to new machine
+                const newTransition = {
+                    sourceId: currentPair.id,
+                    targetId: nextStatePair.id,
+                    label: letter
+                };
+    
+                // If this is a new state, add it for processing
+                if (!newMachine.states.some(s => s.id === nextStatePair.id)) {
+                    newMachine.states.push(nextStatePair);
+                    statesToProcess.push([nextState1, nextState2]);
+                    console.log(`Found new state: ${nextStatePair.label}`);
+                }
+                newMachine.transitions.push(newTransition);
+    
+                console.log(`Processing state ${currentPair.label} with letter ${letter} -> ${nextStatePair.label}`);
+            });
+        }
+    
+        console.log("Final Machine:", newMachine);
         
-        console.log("Transitions from DFA1 start state:", currTrans1);
-        console.log("Transitions from DFA2 start state:", currTrans2); 
-        // This is a placeholder for the actual equivalence checking logic
-
-
         setEquivalenceResult({
           equivalent: true,
           message: 'Analysis complete. The DFAs are equivalent.'
         });
-      };
+    };
 
     return (
         <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: '1000px'}}>

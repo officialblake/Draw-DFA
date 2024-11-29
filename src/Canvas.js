@@ -659,10 +659,40 @@ const DfaNfaVisualizer = () => {
     
         console.log("Final Machine:", newMachine);
         
-        setEquivalenceResult({
-          equivalent: true,
-          message: 'Analysis complete. The DFAs are equivalent.'
-        });
+        // BFS to check for accepting states
+        let queue = [newMachine.startState];
+        let visited = new Set([newMachine.startState.id]);
+
+        while (queue.length > 0) {
+            const currentState = queue.shift();
+            
+            // Check if current state is accepting
+            if (currentState.isAccepting) {
+                setEquivalenceResult({
+                    equivalent: false,
+                    message: `DFAs are not equivalent - Found distinguishing state: ${currentState.label}`
+                });
+                return;
+            }
+
+            // Get all transitions from current state
+            const stateTransitions = newMachine.transitions.filter(t => t.sourceId === currentState.id);
+            
+            // Add unvisited target states to queue
+            stateTransitions.forEach(transition => {
+                const targetState = newMachine.states.find(s => s.id === transition.targetId);
+                if (!visited.has(targetState.id)) {
+                    visited.add(targetState.id);
+                    queue.push(targetState);
+                }
+            });
+}
+
+// If no accepting states were found, the DFAs are equivalent
+setEquivalenceResult({
+    equivalent: true,
+    message: 'Analysis complete. The DFAs are equivalent.'
+});
     };
 
     return (

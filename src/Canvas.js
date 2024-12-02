@@ -686,13 +686,13 @@ const DfaNfaVisualizer = () => {
                     queue.push(targetState);
                 }
             });
-}
+        }
 
-// If no accepting states were found, the DFAs are equivalent
-setEquivalenceResult({
-    equivalent: true,
-    message: 'Analysis complete. The DFAs are equivalent.'
-});
+            // If no accepting states were found, the DFAs are equivalent
+            setEquivalenceResult({
+                equivalent: true,
+                message: 'Analysis complete. The DFAs are equivalent.'
+            });
     };
 
     return (
@@ -765,11 +765,13 @@ setEquivalenceResult({
                                     type="file"
                                     onChange={(e) => handleDfaFileUpload(1, e)}
                                     accept=".json"
+                                    style={{color:'black'}}
                                 />
                                 <input
                                     type="file"
                                     onChange={(e) => handleDfaFileUpload(2, e)}
                                     accept=".json"
+                                    style={{color:'black'}}
                                 />
                                 <button 
                                     onClick={checkDfaEquivalence}
@@ -792,23 +794,23 @@ setEquivalenceResult({
                                 )}
                             </div>)}
     
-            {/* Result display */}
-            {testResult && (
-                <div style={{
-                    marginTop: '10px',
-                    padding: '5px',
-                    backgroundColor: testResult.accepted ? 'green' : 'red',
-                    borderRadius: '4px'
-                }}>
-                    <strong>Result:</strong> {testResult.message}
-                    {testResult.path && (
-                        <div>
-                            <strong>Path:</strong> {testResult.path.join(' → ')}
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
+                            {/* Result display */}
+                            {testResult && (
+                                <div style={{
+                                    marginTop: '10px',
+                                    padding: '5px',
+                                    backgroundColor: testResult.accepted ? 'green' : 'red',
+                                    borderRadius: '4px'
+                                }}>
+                                    <strong>Result:</strong> {testResult.message}
+                                    {testResult.path && (
+                                        <div>
+                                            <strong>Path:</strong> {testResult.path.join(' → ')}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                    </div>
                     
                         {isAddingTransition && (
                             <div style={{ marginTop: '10px' }}>

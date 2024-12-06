@@ -1,0 +1,25 @@
+name: Notify Discord on Push or Merge
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/*'
+  pull_request:
+    types: [closed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Send Discord notification
+      run: |
+        REPO_NAME=$(basename ${{ github.repository }})
+        curl -X POST -H "Content-Type: application/json" \
+        -d "$(jq -n --arg content "Changes in **$REPO_NAME**
+        **Commit by:** ${{ github.actor }}
+        **Message:** ${{ github.event.head_commit.message }}
+        **[View Commit](${{ github.event.head_commit.url }})**" \
+        '{"content":$content}')" \
+        ${{ secrets.DISCORD_WEBHOOK_URL }}

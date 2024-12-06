@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Draw-DFA/static/css/main.261515a5.css",
+    "main.js": "/Draw-DFA/static/js/main.eff94a49.js",
+    "static/js/453.37e12870.chunk.js": "/Draw-DFA/static/js/453.37e12870.chunk.js",
+    "index.html": "/Draw-DFA/index.html",
+    "main.261515a5.css.map": "/Draw-DFA/static/css/main.261515a5.css.map",
+    "main.eff94a49.js.map": "/Draw-DFA/static/js/main.eff94a49.js.map",
+    "453.37e12870.chunk.js.map": "/Draw-DFA/static/js/453.37e12870.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.261515a5.css",
+    "static/js/main.eff94a49.js"
+  ]
+}

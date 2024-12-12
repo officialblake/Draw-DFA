@@ -31,11 +31,10 @@
     An application for generating and performing operations on deterministic and nondeterministic finite automata.
     <br />
     <br />
-    <a href="https://github.com/officialblake/Draw-DFA/blob/main/README.md"><strong>Explore the docs »</strong></a>
+    🎥 Watch the project
+    <a href="https://youtu.be/XLHuf06PrvQ"><strong>video</strong></a>
   </p>
 </div>
-
-
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -65,6 +64,8 @@
 ## About The Project
 
 This program was completed as a final project among three students for CS454 (Theory of Computation) at Sonoma State University in fall 2024. 
+
+Automata theory plays a very important role in computer science, yet many of its concepts can be abstract and difficult to visualize. To resolve this, we developed a tool inspired by JFLAP, which was implemented using JavaScript and React.. The tool allows users to interactively create and analyze Deterministic and Non-Deterministic Finite Automata (DFA and NFA). It also provides features that allow users to test string membership and evaluate DFA equivalence by using the cross-product algorithm. By combining clear visualization and user-friendliness, our project simplifies automata-related problems and makes theoretical concepts related to such machines more accessible.
 
 <!-- GETTING STARTED -->
 <a id="readme-getting-started"></a>

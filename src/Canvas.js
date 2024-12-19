@@ -24,12 +24,25 @@ const DfaNfaVisualizer = () => {
         const newGraph = new dia.Graph({}, { cellNamespace: shapes });
         const paper = new dia.Paper({
             el: paperRef.current,
-            width: 600,
-            height: 600,
+            width: 900,
+            height: 650,
             model: newGraph,
             cellViewNamespace: shapes,
             gridSize: 10,
             drawGrid: true,
+            interactive: true,
+            defaultLink: new shapes.standard.Link(),
+            defaultConnectionPoint: { name: 'boundary' },
+            validateConnection: () => true,
+            background: {
+                color: 'transparent'
+            }
+        });
+
+        // Enable dragging for all elements
+        paper.on('element:pointerdown', function(elementView) {
+            const element = elementView.model;
+            element.toFront();
         });
 
         setGraph(newGraph);
@@ -76,15 +89,34 @@ const DfaNfaVisualizer = () => {
         if (!graph) return;
 
         const label = `q${stateCounter}`;
-        const x = 100 + (stateCounter % 5) * 100;
-        const y = 100 + Math.floor(stateCounter / 5) * 100;
+        // Calculate position to spread circles evenly in a grid with 5 per row
+        const circlesPerRow = 5;
+        const horizontalSpacing = 140;
+        const verticalSpacing = 140;
+        const startX = 120;  // Increased to center the circles
+        const startY = 100;
+
+        const x = startX + (stateCounter % circlesPerRow) * horizontalSpacing;
+        const y = startY + Math.floor(stateCounter / circlesPerRow) * verticalSpacing;
 
         const circle = new shapes.standard.Circle();
         circle.position(x, y);
         circle.resize(60, 60);
         circle.attr({
-            body: { fill: '#ccccff', strokeWidth: 3 },
-            label: { text: label, fill: 'black', fontWeight: 'bold' },
+            body: { 
+                fill: '#ccccff', 
+                strokeWidth: 3
+            },
+            label: { 
+                text: label, 
+                fill: 'black', 
+                fontWeight: 'bold',
+                fontSize: 16,
+                textAnchor: 'middle',
+                textVerticalAnchor: 'middle',
+                refX: '50%',
+                refY: '50%'
+            }
         });
         circle.addTo(graph);
 
@@ -695,6 +727,24 @@ const DfaNfaVisualizer = () => {
             });
     };
 
+    const clearMachine = () => {
+        // Clear the graph
+        graph.clear();
+        
+        // Reset all states
+        setStates([]);
+        setTransitions([]);
+        setStateCounter(0);
+        setAcceptingStates(new Set());
+        setStartState(null);
+        setTestString('');
+        setTestResult(null);
+        setDfa1(null);
+        setDfa2(null);
+        setEquivalenceResult(null);
+        setMachineType('');
+    };
+
     return (
         <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: '1000px'}}>
             <div>
@@ -717,6 +767,7 @@ const DfaNfaVisualizer = () => {
                     <button onClick={() => document.getElementById('fileInput').click()} className="button">
                         Load Machine
                     </button>
+                    <button onClick={clearMachine} className="button">Clear Machine</button>
                     {machineType === "NFA" &&
                         (
                             <h4 style={{color : 'black'}}>Epsilon symbol for NFA (copy and paste) ε</h4>
@@ -733,8 +784,8 @@ const DfaNfaVisualizer = () => {
                         ))}
                     </select>
                 </div>
-                    <div style={{ marginTop: '10px', padding: '10px', border: '1px solid #ccc' }}>
-                        <h4 style={{ color: 'black' }}>Test String (Starting from {states.find(s => s.id === startState)?.label})</h4>
+                    <div className="test-container">
+                        <h4>Test String (Starting from {states.find(s => s.id === startState)?.label})</h4>
                         
                         {/* String input and test button */}
                         <div style={{ marginTop: '5px' }}>
@@ -757,10 +808,9 @@ const DfaNfaVisualizer = () => {
                                 Test String
                             </button>
                         </div>
-                        {(
+                        <div className="test-container">
+                            <h4>DFA Equivalence Test(Upload 2 DFA JSON files)</h4>
                             <div>
-                                <h4 style={{color: 'black'}}>DFA Equivalence Test(Upload 2 DFA JSON files)</h4>
-                                <div>
                                 <input
                                     type="file"
                                     onChange={(e) => handleDfaFileUpload(1, e)}
@@ -780,19 +830,19 @@ const DfaNfaVisualizer = () => {
                                 >
                                     Check Equivalence
                                 </button>
+                            </div>
+                            
+                            {equivalenceResult && (
+                                <div style={{
+                                    marginTop: '10px',
+                                    padding: '5px',
+                                    backgroundColor: equivalenceResult.equivalent ? 'green' : 'red',
+                                    borderRadius: '4px'
+                                }}>
+                                    <strong>Result:</strong> {equivalenceResult.message}
                                 </div>
-                                
-                                {equivalenceResult && (
-                                    <div style={{
-                                        marginTop: '10px',
-                                        padding: '5px',
-                                        backgroundColor: equivalenceResult.equivalent ? 'green' : 'red',
-                                        borderRadius: '4px'
-                                    }}>
-                                        <strong>Result:</strong> {equivalenceResult.message}
-                                </div>
-                                )}
-                            </div>)}
+                            )}
+                        </div>
     
                             {/* Result display */}
                             {testResult && (
@@ -847,7 +897,10 @@ const DfaNfaVisualizer = () => {
                         )}
                     </div>
 
-                    <div ref={paperRef} style={{ width: '600px', height: '600px', border: '1px solid #ccc', marginTop: '20px' }}></div>
+                    <div className="diagram-container">
+                        <h3 className="diagram-title">DFA/NFA State Diagram</h3>
+                        <div ref={paperRef} style={{ width: '600px', height: '600px' }}></div>
+                    </div>
                 </div>
 
                 <div style={{ marginLeft: '20px' }}>

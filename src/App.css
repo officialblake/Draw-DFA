@@ -1,81 +1,575 @@
+/* Modern CSS Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom Properties */
+:root {
+  --primary-color: #1e1e2e;
+  --secondary-color: #2d2d44;
+  --accent-color: #7c3aed;
+  --accent-light: #9f67ff;
+  --text-color: #e2e8f0;
+  --text-muted: rgba(226, 232, 240, 0.6);
+  --background-dark: #13131f;
+  --background-light: #2d2d44;
+  --shadow-color: rgba(0, 0, 0, 0.25);
+  --border-color: rgba(124, 58, 237, 0.2);
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --transition-speed: 0.3s;
+  --font-family: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+/* Global text styles */
+body, input, select, button, textarea, p, span, div, h1, h2, h3, h4, h5, h6, label {
+  font-family: var(--font-family);
+  color: var(--text-color);
+  letter-spacing: 0.3px;
+}
+
 /* App container */
 .app-container {
-  font-family: 'Arial', sans-serif;
-  background: linear-gradient(to bottom, #ff7e5f, #feb47b);
-  color: white;
+  font-family: var(--font-family);
+  background: var(--background-dark);
+  background-image: 
+    radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%);
+  color: var(--text-color);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 20px;
+  justify-content: flex-start;
+  padding: 2rem;
+  position: relative;
 }
 
 /* Header */
 .app-header {
   text-align: center;
-  animation: fadeIn 1s ease-in-out;
+  margin-bottom: 3rem;
+  animation: slideDown 0.8s ease-out;
 }
 
 /* Title and subtitle */
 .title {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--accent-light), var(--accent-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
   font-size: 1.5rem;
-  color: #f9c74f;
-  margin-top: 0;
-  opacity: 0.8;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 1px;
+  animation: fadeIn 1s ease-in-out 0.5s both;
 }
 
 /* Visualizer container */
 .visualizer-container {
-  margin-top: 30px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 2rem;
+  padding: 2rem;
+  background: rgba(45, 45, 68, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(124, 58, 237, 0.2);
+  border: none;
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+  animation: scaleIn 0.6s ease-out;
 }
 
 /* Button Styles */
 .button {
-  padding: 10px 15px;
-  font-size: 14px;
-  background-color: #ff7e5f;
-  color: white;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+  color: var(--text-color);
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
-  margin: 5px;
-  transition: background-color 0.3s;
-  font-weight: bold;
+  margin: 8px;
+  transition: all var(--transition-speed);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px var(--shadow-color);
 }
 
 .button:hover {
-  background-color: #ff7e5f; /* Darker blue on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--shadow-color);
 }
 
 .button:disabled {
-  background-color: #d6d6d6;
+  background: var(--secondary-color);
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.6;
 }
 
 /* Input Styles */
 .input {
-  padding: 8px;
-  font-size: 14px;
-  margin: 5px 0;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  padding: 12px 16px;
+  font-size: 1rem;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  background: var(--primary-color);
+  color: var(--text-color);
   width: 100%;
-  box-sizing: border-box;
+  transition: all var(--transition-speed);
 }
 
-/* Fade in animation */
+.input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+}
+
+/* Canvas Styles */
+canvas {
+  border-radius: 12px;
+  background: var(--text-color);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-speed);
+  box-shadow: 0 4px 20px var(--shadow-color);
+}
+
+/* Ensure all text is properly colored */
+.app-container h1,
+.app-container h2,
+.app-container h3,
+.app-container h4,
+.app-container h5,
+.app-container h6,
+.app-container p,
+.app-container span,
+.app-container label,
+.app-container div {
+  color: var(--text-color);
+}
+
+/* Ensure text color in all states */
+*:not(button):not(a) {
+  color: var(--text-color) !important;
+}
+
+/* Animations */
+@keyframes slideDown {
+  0% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Enhanced Form Controls */
+.input,
+select,
+input[type="text"],
+input[type="file"] {
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  margin: 8px 0;
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-color);
+  width: 100%;
+  max-width: 300px;
+  transition: all var(--transition-speed);
+  backdrop-filter: blur(10px);
+}
+
+/* Dropdown specific styles */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+select option {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  padding: 12px;
+}
+
+/* File input specific styles */
+input[type="file"] {
+  position: relative;
+  padding: 12px;
+  cursor: pointer;
+  border-style: dashed;
+}
+
+input[type="file"]::file-selector-button {
+  font-family: var(--font-family);
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+  border: none;
+  color: var(--text-color);
+  margin-right: 12px;
+  transition: all var(--transition-speed);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+input[type="file"]::file-selector-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Focus and hover states */
+.input:focus,
+select:focus,
+input[type="text"]:focus,
+input[type="file"]:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.input:hover,
+select:hover,
+input[type="text"]:hover,
+input[type="file"]:hover {
+  border-color: var(--accent-color);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Test string input specific styles */
+.test-string-input {
+  position: relative;
+  display: inline-block;
+}
+
+.test-string-input input {
+  padding-left: 16px;
+  font-family: var(--font-family);
+  letter-spacing: 0.5px;
+}
+
+.test-string-input input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Form group styles */
+.form-group {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-color);
+  opacity: 0.9;
+  margin-left: 4px;
+}
+
+/* Test sections container styles */
+.test-section,
+.equivalence-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(124, 58, 237, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all var(--transition-speed);
+}
+
+.test-section:hover,
+.equivalence-section:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Test section title */
+.test-section h3,
+.equivalence-section h3 {
+  color: var(--text-color);
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  opacity: 0.9;
+}
+
+/* Container for file inputs */
+.file-input-container {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+
+/* Test container styles */
+.test-container {
+  background: var(--secondary-color) !important;
+  border: none !important;
+  border-radius: 16px !important;
+  padding: 1.5rem !important;
+  margin: 1rem 0 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  transition: all var(--transition-speed) !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(124, 58, 237, 0.2) !important;
+}
+
+/* Test container headings */
+.test-container h4 {
+  color: var(--text-color) !important;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Test section headings */
+h4[style*="color: 'black'"] {
+  color: var(--text-color) !important;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1rem !important;
+  opacity: 0.9 !important;
+}
+
+/* File input containers */
+div[style*="marginTop: '5px'"],
+div[style*="marginTop: '10px'"] {
+  margin: 1rem 0 !important;
+  display: flex !important;
+  gap: 1rem !important;
+  flex-wrap: wrap !important;
+}
+
+/* Result containers */
+div[style*="backgroundColor"] {
+  margin-top: 1rem !important;
+  padding: 1rem !important;
+  border-radius: 8px !important;
+  background: var(--primary-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Success result */
+div[style*="backgroundColor: 'green'"] {
+  border-color: var(--success-color) !important;
+  background: rgba(16, 185, 129, 0.05) !important;
+}
+
+/* Error result */
+div[style*="backgroundColor: 'red'"] {
+  border-color: var(--error-color) !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+}
+
+/* States and Transitions List Container */
+div[style*="marginLeft: '20px'"] {
+  background: var(--secondary-color) !important;
+  border: none !important;
+  border-radius: 16px !important;
+  padding: 1.5rem !important;
+  margin: 1rem 0 1rem 20px !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(124, 58, 237, 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* States List Section */
+div[style*="marginBottom: '20px'"] {
+  margin-bottom: 1.5rem !important;
+}
+
+/* State and Transition Headers */
+div[style*="marginLeft: '20px'"] h3 {
+  color: var(--text-color) !important;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1rem !important;
+  opacity: 0.9 !important;
+}
+
+/* State Items */
+div[style*="marginBottom: '5px'"] {
+  margin-bottom: 0.75rem !important;
+}
+
+div[style*="marginBottom: '5px'"] label {
+  color: var(--text-color) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  font-size: 0.95rem !important;
+}
+
+/* Transitions List */
+div[style*="marginLeft: '20px'"] ul {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+div[style*="marginLeft: '20px'"] li {
+  color: var(--text-color) !important;
+  padding: 0.5rem 0 !important;
+  font-size: 0.95rem !important;
+  opacity: 0.9 !important;
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 4px !important;
+  border: 2px solid var(--accent-color) !important;
+  background: var(--primary-color) !important;
+  cursor: pointer !important;
+  margin-right: 8px !important;
+}
+
+/* Paper container styles */
+div[style*="width: '600px'"] {
+  background: var(--secondary-color) !important;
+  border: 2px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  padding: 2rem !important;
+  margin-top: 1rem !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(124, 58, 237, 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* Paper title */
+div[style*="width: '600px'"]::before {
+  content: "DFA/NFA State Diagram" !important;
+  position: absolute !important;
+  top: 0.75rem !important;
+  left: 1.5rem !important;
+  color: var(--text-color) !important;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  opacity: 0.9 !important;
+}
+
+/* Canvas/Paper styles */
+canvas {
+  border-radius: 12px !important;
+  background: var(--primary-color) !important;
+  margin-top: 1rem !important;
+  transition: all var(--transition-speed) !important;
+  box-shadow: none !important;
+}
+
+/* Diagram container styles */
+.diagram-container {
+  background: var(--secondary-color);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  padding: 3rem 1.5rem 1.5rem;
+  margin: 3rem auto;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(124, 58, 237, 0.2);
+  backdrop-filter: blur(10px);
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  min-height: 700px;
+}
+
+.diagram-title {
+  background: var(--primary-color);
+  color: var(--text-color);
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  position: absolute;
+  top: -1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(124, 58, 237, 0.2);
+  z-index: 10;
+}
+
+/* Update canvas container styles */
+.diagram-container div[style*="width: '600px'"] {
+  background: var(--primary-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: visible !important;
+  transition: all var(--transition-speed);
+  margin: 1rem auto !important;
+  padding: 1.5rem;
+  width: 900px !important;
+  height: 650px !important;
+}
+
+/* Paper styles */
+.diagram-container .joint-paper {
+  background: transparent !important;
+  width: 900px !important;
+  height: 650px !important;
+  overflow: visible !important;
 }

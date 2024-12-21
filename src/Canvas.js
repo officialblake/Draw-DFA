@@ -177,13 +177,49 @@ const DfaNfaVisualizer = () => {
 
             link.attr({
                 line: {
-                    stroke: 'black',
-                    strokeWidth: 2,
-                    targetMarker: { type: 'path', d: 'M 10 -5 0 0 10 5 Z', fill: 'black' },
+                    stroke: 'var(--accent-color)',
+                    strokeWidth: 2.5,
+                    targetMarker: { 
+                        type: 'path', 
+                        d: 'M 12 -6 0 0 12 6 Z', 
+                        fill: 'var(--accent-color)',
+                        stroke: 'var(--accent-color)'
+                    },
+                    strokeDasharray: '0',
+                    targetMarkerSize: 12,
                 },
             });
             link.labels([{
-                attrs: { text: { text: transitionLabel, fontSize: 14, fontWeight: 'bold' } },
+                markup: [
+                    {
+                        tagName: 'rect',
+                        selector: 'body'
+                    },
+                    {
+                        tagName: 'text',
+                        selector: 'label'
+                    }
+                ],
+                attrs: { 
+                    label: { 
+                        text: transitionLabel, 
+                        fontSize: 15,
+                        fontWeight: 'bold',
+                        fontFamily: 'var(--font-family)',
+                        fill: '#000000',
+                        textAnchor: 'middle',
+                        textVerticalAnchor: 'middle'
+                    },
+                    body: {
+                        fill: '#FFFFFF',
+                        stroke: 'var(--accent-color)',
+                        strokeWidth: 2,
+                        width: 20,
+                        height: 22,
+                        x: -10,  // Half of width to center
+                        y: -11   // Half of height to center
+                    }
+                },
                 position: 0.5,
             }]);
             link.addTo(graph);
@@ -888,6 +924,7 @@ const DfaNfaVisualizer = () => {
                                 />
 
                                 <button
+                                    className="confirm-transition-button button"
                                     onClick={confirmTransition}
                                     disabled={!transitionSource || !transitionTarget || !transitionLabel}
                                 >

@@ -33,6 +33,9 @@
     <br />
     🎥 Watch the project
     <a href="https://youtu.be/XLHuf06PrvQ"><strong>video</strong></a>
+    <br />
+    🚀
+    <a href="https://officialblake.github.io/Draw-DFA/"><strong>Try the project</strong></a>
   </p>
 </div>
 

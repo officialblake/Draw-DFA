@@ -129,7 +129,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 [stars-url]: https://github.com/officialblake/Draw-DFA/stargazers
 [issues-shield]: https://img.shields.io/github/issues/officialblake/Draw-DFA.svg?style=for-the-badge
 [issues-url]: https://github.com/officialblake/Draw-DFA/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/officialblake/Draw-DFA.svg?style=for-the-badge
 
 [license-url]: https://github.com/officialblake/Draw-DFA/blob/main/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
